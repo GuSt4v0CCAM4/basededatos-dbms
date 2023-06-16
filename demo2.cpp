@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 class Sector {
 private:
@@ -347,6 +348,7 @@ public:
         int num = rand() % 10;
 
         std::string blockName;
+        int linenumber=0;
 
         for (const std::string& line : lines) {
             if (discog.isFull()) {
@@ -357,7 +359,10 @@ public:
             std::string position = getPosition(plato, superficie, pista, sector);
             std::string fileName = position + ".txt";
             writeFile(fileName, line);
+            linenumber++;
             discog.addLine(position);
+            savePositionToFile(linenumber, position);
+
 
             sector++;
             if (sector > 30) {
@@ -408,6 +413,20 @@ public:
             }
         }
     }
+    void savePositionToFile(int lineNumber, const std::string& position)
+    {
+        std::ofstream positionFile("pos_line.txt", std::ios::app);
+        if (positionFile)
+        {
+            positionFile << lineNumber << "#" << position << std::endl;
+            positionFile.close();
+        }
+        else
+        {
+            std::cout << "Error al abrir el archivo de posición." << std::endl;
+            return;
+        }
+    }
     void create(const std::string& fileName) {
         std::string input;
         std::cout << "Ingrese los atributos separados por numeral: ";
@@ -437,30 +456,49 @@ public:
         }
     }
 
-    void insert(const std::string& fileName) {
-        std::string input;
-        std::cout << "Ingrese los atributos separados por numeral: ";
-        std::getline(std::cin, input);
+    void insert() {
+        std::string filename;
+        std::cout << "Ingrese el nombre del archivo de texto: ";
+        std::cin >> filename;
 
-        std::string file = fileName + ".txt";
-        std::vector<std::string> attributes;
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "No se pudo abrir el archivo: " << filename << std::endl;
+            return;
+        }
+
+        std::string attributes;
+        std::getline(file, attributes);
+        file.close();
+
+        std::cout << "Atributos: " << attributes << std::endl;
+
+        std::vector<std::string> newData;
+
+        std::istringstream iss(attributes);
         std::string attribute;
+        while (std::getline(iss, attribute, '#')) {
+            std::string value;
+            std::cout << "Ingrese el valor para " << attribute << ": ";
+            std::cin >> value;
+            newData.push_back(value);
+        }
 
-        for (char c : input) {
-            if (c == '#') {
-                attributes.push_back(attribute);
-                attribute = "";
-            } else {
-                attribute += c;
+        std::ofstream outputFile(filename, std::ios::app);
+        if (outputFile.is_open()) {
+            std::ostringstream oss;
+            for (const std::string& value : newData) {
+                oss << value << "#";
             }
-        }
+            std::string line = oss.str();
+            line.pop_back(); // Eliminar el último símbolo numeral (#)
+            outputFile << std::endl<< line << std::endl;
+            outputFile.close();
 
-        if (!attribute.empty()) {
-            attributes.push_back(attribute);
-        }
-
-        for (const std::string& attr : attributes) {
-            writeFile(file, attr);
+            storeLines({line}); // Llamar a la función storeLines con la nueva línea en un vector
+            std::cout << "Datos insertados correctamente." << std::endl;
+        } else {
+            std::cerr << "No se pudo abrir el archivo: " << filename << std::endl;
         }
     }
 
@@ -536,6 +574,140 @@ public:
             directoryFile2.close();
         }
     }
+    void del() {
+        std::string filename;
+        std::cout << "Ingrese el nombre del archivo de texto: ";
+        std::cin >> filename;
+
+        std::ifstream inFile(filename);
+        if (!inFile)
+        {
+            std::cout << "Error al abrir el archivo de texto." << std::endl;
+            return;
+        }
+
+        std::vector<std::string> lines;
+        std::string line;
+
+        // Omitimos la primera línea que contiene los atributos
+        std::getline(inFile, line);
+
+        while (std::getline(inFile, line))
+        {
+            lines.push_back(line);
+        }
+
+        inFile.close();
+
+        std::cout << "Ingrese el contenido a buscar: ";
+        std::string searchContent;
+        std::cin.ignore();
+        std::getline(std::cin, searchContent);
+
+        std::vector<int> matchingLines;
+
+        for (int i = 0; i < lines.size(); i++)
+        {
+            if (lines[i].find(searchContent) != std::string::npos)
+            {
+                matchingLines.push_back(i);
+                std::cout << "Opción " << matchingLines.size() << ": " << lines[i] << std::endl;
+            }
+        }
+
+        if (matchingLines.empty())
+        {
+            std::cout << "No se encontraron coincidencias." << std::endl;
+            return;
+        }
+
+        std::cout << "Ingrese el rango de líneas a eliminar (ejemplo: 1-3): ";
+        std::string range;
+        std::getline(std::cin, range);
+
+        int startLine = std::stoi(range.substr(0, range.find('-')));
+        int endLine = std::stoi(range.substr(range.find('-') + 1));
+
+        std::cout << "¿Está seguro de eliminar las líneas " << startLine << " a " << endLine << "? (S/N): ";
+        std::string confirmation;
+        std::getline(std::cin, confirmation);
+
+        if (confirmation == "S" || confirmation == "s")
+        {
+            std::ofstream outFile(filename);
+
+            for (int i = 0; i < lines.size(); i++)
+            {
+                if (i < startLine - 1 || i > endLine - 1)
+                {
+                    outFile << lines[i] << std::endl;
+                }
+                else
+                {
+                    outFile << std::endl; // Reemplazamos la línea con un salto de línea
+                }
+            }
+
+            outFile.close();
+
+            std::ofstream logFile("del_log.txt", std::ios::app);
+
+            for (int i = startLine - 1; i < endLine; i++)
+            {
+                int lineNumber = matchingLines[i];
+                logFile << filename << "#" << lineNumber << std::endl;
+            }
+
+            logFile.close();
+
+            std::cout << "Se han eliminado satisfactoriamente las líneas del archivo." << std::endl;
+
+            std::ifstream posLineFile("pos_line.txt");
+            std::string posLineContent;
+
+            if (posLineFile)
+            {
+                std::stringstream buffer;
+                buffer << posLineFile.rdbuf();
+                posLineContent = buffer.str();
+                posLineFile.close();
+            }
+
+            std::ofstream updatedPosLineFile("pos_line.txt");
+
+            for (int i = startLine - 1; i < endLine; i++)
+            {
+                int lineNumber = matchingLines[i];
+                std::string searchString = std::to_string(lineNumber);
+                std::size_t pos = posLineContent.find(searchString);
+
+                if (pos != std::string::npos)
+                {
+                    // Buscamos la posición correspondiente
+                    std::string position = posLineContent.substr(pos - 8, 8);
+
+                    // Eliminamos el registro del archivo pos_line.txt
+                    posLineContent.replace(pos - 8, 9, "");
+
+                    // Imprimimos el mensaje de eliminación
+                    std::string blockNumber = position.substr(0, 2);
+                    std::string surfaceNumber = position.substr(2, 2);
+                    std::string trackNumber = position.substr(4, 2);
+                    std::string sectorNumber = position.substr(6, 2);
+                    std::cout << "Se eliminó satisfactoriamente el registro del " << sectorNumber << " sector de la "
+                              << trackNumber << " pista del " << surfaceNumber << " superficie del " << blockNumber
+                              << " plato del disco, perteneciente al bloque " << blockNumber << "." << std::endl;
+                }
+            }
+
+            updatedPosLineFile << posLineContent;
+            updatedPosLineFile.close();
+        }
+        else
+        {
+            std::cout << "Operación de eliminación cancelada." << std::endl;
+        }
+    }
 };
 
 int main() {
@@ -554,9 +726,7 @@ int main() {
             std::getline(std::cin, fileName);
             megatron.create(fileName);
         } else if (query == "INSERT") {
-            std::cout << "Ingrese el nombre del archivo: ";
-            std::getline(std::cin, fileName);
-            megatron.insert(fileName);
+            megatron.insert();
         } else if (query == "SELECT") {
             std::cout << "Ingrese el nombre del archivo: ";
             std::getline(std::cin, fileName);
@@ -567,6 +737,8 @@ int main() {
             megatron.location();
         } else if (query == "CREATE_DISK"){
             megatron.create_disk();
+        }else if (query == "DELETE"){
+            megatron.del();
         }
 
         std::cout << "Continua (s/n)? ";
