@@ -26,70 +26,96 @@ public:
     void extractAttributes(const string& header) {
         istringstream iss(header);
         string attribute;
+        int weightLine = 0;
+        ofstream dirFile("weightline.txt");
 
-        while (getline(iss, attribute, ',')) {
-            string attributeName = attribute;
-            string attributeType;
-            size_t attributeLength;
+            while (getline(iss, attribute, ',')) {
+                int opc=0;
+                string attributeName = attribute, attributeType;
+                float attributeLength;
 
-            cout << "Ingrese el tipo de variable para el atributo '" << attributeName << "': ";
-            cin >> attributeType;
+                cout << "Elige el tipo de variable para el atributo '" << attributeName << "': "<<endl;
+                cout << "1. VARCHAR" << endl;
+                cout << "2. INT" << endl;
+                cout << "3. DECIMAL" << endl;
+                cout <<"Opcion: ";
+                cin >> opc;
 
-            cout << "Ingrese la longitud para el atributo '" << attributeName << "': ";
-            cin >> attributeLength;
+                switch (opc) {
+                    case 1: attributeType = "varchar";
+                    break;
+                    case 2: attributeType = "int";
+                    break;
+                    case 3: attributeType = "decimal";
+                    break;
+                    default:
+                        cout<<"Opcion incorrecta."<<endl;
+                        break;
+                }
 
-            Attribute attr(attributeName, attributeType, attributeLength);
-            attributes.push_back(attr);
-        }
+                cout << "Ingrese la longitud para el atributo '" << attributeName << "': "<<endl;
+                cin >> attributeLength;
+                if (attributeType == "decimal") {
+                    weightLine += (attributeLength + 2);
+                }else if(attributeType == "varchar") {
+                    weightLine += (attributeLength + 1);
+                }else if(attributeType == "int") {
+                    weightLine += 4;
+                }
+
+
+                Attribute attr(attributeName, attributeType, attributeLength);
+                attributes.push_back(attr);
+                cout<<weightLine<<endl;
+
+            }
+        dirFile << weightLine;
+
+
+        dirFile.close();
+
+        cout << "El resultado se ha guardado en weightline.txt." << endl;
     }
 
-    string convertToFixedLength(const string& line) {
-        istringstream iss(line);
-        string value;
-        ostringstream oss;
 
-        int i = 0;
-        while (getline(iss, value, ',')) {
-            const Attribute& attr = attributes[i++];
-            string fixedValue = value;
-            fixedValue.resize(attr.length, ' ');
-
-            oss << fixedValue;
-        }
-
-        return oss.str();
-    }
 
     void processEsquema(const string& inputFile, const string& outputFile) {
-        ifstream input(inputFile);
-        ofstream output(outputFile);
-
-        if (!input || !output) {
-            cout << "Error al abrir los archivos." << endl;
+        ifstream esquemaFile(outputFile);
+        if(esquemaFile) {
+            cout<<"Ya existe el archivo esquema perteneciente a "<<inputFile<<" asi que se continuara..."<<endl;
             return;
-        }
+        } else{
+            ifstream input(inputFile);
+            ofstream output(outputFile);
 
-        string header;
-        string dataLine;
-
-        // Leer la primera línea del archivo CSV para obtener los nombres de los atributos
-        if (getline(input, header)) {
-            extractAttributes(header);
-
-            // Escribir los atributos junto con sus tipos de variables y longitud en el archivo de esquema
-            for (const Attribute& attr : attributes) {
-                output << attr.name << " (" << attr.type << ", longitud: " << attr.length << ")" << endl;
+            if (!input || !output) {
+                cout << "Error al abrir los archivos." << endl;
+                return;
             }
 
+            string header, dataLine;
 
-            cout << "Se ha creado el archivo de esquema exitosamente." << endl;
-        } else {
-            cout << "No se encontraron atributos en el archivo CSV." << endl;
+            // Leer la primera línea del archivo CSV para obtener los nombres de los atributos
+            if (getline(input, header)) {
+                extractAttributes(header);
+
+                // Escribir los atributos junto con sus tipos de variables y longitud en el archivo de esquema
+                for (const Attribute& attr : attributes) {
+                    output << attr.name << " (" << attr.type << ", longitud: " << attr.length << ")" << endl;
+                }
+
+
+                cout << "Se ha creado el archivo de esquema exitosamente." << endl;
+            } else {
+                cout << "No se encontraron atributos en el archivo CSV." << endl;
+            }
+
+            input.close();
+            output.close();
         }
 
-        input.close();
-        output.close();
     }
+
 };
 
 #endif

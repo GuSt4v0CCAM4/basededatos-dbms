@@ -7,7 +7,7 @@
 #include "string"
 #include "vector"
 using namespace std;
-namespace fs = std::filesystem;
+namespace fs = filesystem;
 class Disco {
 private:
     int capacidadDisco, capacidadSector, numSectores, numPistas, numSuperficies=2, numPlatos;
@@ -17,14 +17,16 @@ public:
     capacidadSector(capacidadSector), numSectores(numSectores), numPistas(numPistas), numPlatos(numPlatos)
     {
         capacidadDisco = capacidadSector * numSectores * numPistas * numPistas * numPlatos;
+
+
     }
-    bool diskExists(const std::string& diskName)
+    bool diskExists(const string& diskName)
     {
         return fs::exists(diskName);
     }
     void createFolder(string diskname){
         if (diskExists(diskname)) {
-            std::cout << "El disco ya existe." << std::endl;
+            cout << "El disco ya existe." << endl;
             return;
         }else{
             fs::create_directory(diskname);
@@ -41,10 +43,10 @@ public:
                         fs::create_directory(carpetaPista);
                         for(int sector = 0; sector < numSectores; ++sector){
                             string position;
-                            position += (numPlatos < 9 ? "0" : "") + to_string(plato + 1);
-                            position += (numSuperficies < 9 ? "0" : "") + to_string(superficie + 1);
-                            position += (numPistas < 9 ? "0" : "") + to_string(pista + 1);
-                            position += (numSectores < 9 ? "0" : "") + to_string(sector + 1);
+                            position += (plato < 9 ? "0" : "") + to_string(plato + 1);
+                            position += (superficie < 9 ? "0" : "") + to_string(superficie + 1);
+                            position += (pista < 9 ? "0" : "") + to_string(pista + 1);
+                            position += (sector < 9 ? "0" : "") + to_string(sector + 1);
                             string archivoSector = carpetaPista + "/Sector " +  position + ".txt";
                             ofstream file(archivoSector);
                             file.close();
@@ -53,9 +55,14 @@ public:
                 }
             }
         }
+        ofstream file;
+        file.open(diskname + "/" + diskname + ".txt", ios::out);
+        file << capacidadSector << " " << numSectores << " " << numPistas << " " << numSuperficies << " " <<numPlatos << endl;
+        file.close();
         cout<<"Disco creado con exito"<<endl;
         cout<< "El disco "<<diskname<<" tiene "<<capacidadDisco<<" bytes."<<endl;
     }
+
     void asignarBloques(int numSectoresPerBloque, string diskname) {
         string directoryFile = diskname + "/DirectorioDeBloques.txt";
         ofstream dirFile(directoryFile.c_str(), ios::app);
@@ -63,7 +70,9 @@ public:
         int numBloques = numSectoresTotal / numSectoresPerBloque;
 
         for (int bloque = 0; bloque < numBloques; ++bloque) {
-            dirFile << "Bloque " << bloque << ": ";
+            string bloqueFixed;
+            bloqueFixed = (bloque <= 9 ? "0" : "") + to_string(bloque);
+            dirFile << "Bloque " << bloqueFixed << ": ";
             int sectorInicio = bloque * numSectoresPerBloque;
 
             for (int i = 0; i < numSectoresPerBloque; ++i) {
@@ -88,6 +97,41 @@ public:
         }
 
         dirFile.close();
+    }
+    void select(string diskname, string search) {
+
+        for (int plato = 0; plato < numPlatos; ++plato) {
+            string carpetaPlato = diskname + "/Plato " + to_string(plato + 1);
+
+            for (int superficie = 0; superficie < numSuperficies; ++superficie) {
+                string carpetaSuperficie = carpetaPlato + "/Superficie " + to_string(superficie + 1);
+
+                for (int pista = 0; pista < numPistas; ++pista) {
+                    string carpetaPista = carpetaSuperficie + "/Pista " + to_string(pista + 1);
+
+                    for(int sector = 0; sector < numSectores; ++sector){
+                        string position;
+                        position += (plato < 9 ? "0" : "") + to_string(plato + 1);
+                        position += (superficie < 9 ? "0" : "") + to_string(superficie + 1);
+                        position += (pista < 9 ? "0" : "") + to_string(pista + 1);
+                        position += (sector < 9 ? "0" : "") + to_string(sector + 1);
+                        string archivoSector = carpetaPista + "/Sector " +  position + ".txt";
+                        ifstream file(archivoSector);
+                        //cout<<archivoSector<<endl;
+                        if(file){
+                            string line;
+                            while (getline(file, line)) {
+                                if (line.find(search) != string::npos) {
+                                    cout<<line<<endl;
+                                    cout<<"El archivo "<<archivoSector<<" contiene el bloque "<<line<<endl;
+                                }
+                            }
+                        }
+                        file.close();
+                    }
+                }
+            }
+        }
     }
 
 
