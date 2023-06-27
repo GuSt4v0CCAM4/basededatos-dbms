@@ -1,5 +1,7 @@
 #ifndef DISCO_H
 #define DISCO_H
+#include "algorithm"
+#include "cctype"
 #include "iostream"
 #include "filesystem"
 #include "fstream"
@@ -121,8 +123,10 @@ public:
                         if(file){
                             string line;
                             while (getline(file, line)) {
+                                line.erase(std::remove_if(line.begin(), line.end(), [](unsigned char c) { return std::isspace(c) || c == '\"'; }), line.end());
                                 if (line.find(search) != string::npos) {
-                                    cout<<line<<endl;
+                                    //cout<<line<<endl;
+
                                     cout<<"El archivo "<<archivoSector<<" contiene el bloque "<<line<<endl;
                                 }
                             }
