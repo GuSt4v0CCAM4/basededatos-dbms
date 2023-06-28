@@ -81,6 +81,11 @@ int main() {
             //megatron.location();
         } else if (query == "DELETE"){
             //megatron.del();
+        } else if (query == "INFO"){
+            cout << "Ingrese el nombre del Disco: ";
+            getline(cin, fileName);
+            Dbms dbms(fileName);
+            dbms.info();
         }
 
         cout << "Continua (s/n)? ";
