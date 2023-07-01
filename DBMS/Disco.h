@@ -79,8 +79,10 @@ public:
     }
 
     void asignarBloques(int numSectoresPerBloque, string diskname) {
+        //recibimos los parametros de numero de sectores por bloque y el nombre del disco
         string directoryFile = diskname + "/DirectorioDeBloques.txt";
         ofstream dirFile(directoryFile.c_str(), ios::app);
+        //calculamos el numero de bloques a partir del numero total de sectores
         int numSectoresTotal = numSectores * numPistas * numSuperficies * numPlatos;
         int numBloques = numSectoresTotal / numSectoresPerBloque;
 
