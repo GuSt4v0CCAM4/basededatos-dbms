@@ -8,6 +8,7 @@
 #include "sstream"
 #include "string"
 #include "vector"
+//un comentario
 using namespace std;
 namespace fs = filesystem;
 class Disco {
