@@ -21,7 +21,7 @@ public:
     {
         capacidadDisco = capacidadSector * numSectores * numPistas * numPistas * numPlatos;
 
-
+// UN COMENTAARIO
     }
     bool diskExists(const string& diskName)
     {
