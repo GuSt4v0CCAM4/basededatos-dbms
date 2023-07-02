@@ -47,7 +47,7 @@ int main() {
     File file;
     Esquema esquema;
     while (true) {
-        cout << "Ingrese una consulta (CREATE_DISK, READ, CREATE, INSERT, SELECT, LOCATION): ";
+        cout << "Ingrese una consulta (CREATE_DISK, READ, CREATE, INSERT, SELECT, LOCATION, BUFFER): ";
         getline(std::cin, query);
 
         if (query == "CREATE_DISK") {
@@ -95,6 +95,9 @@ int main() {
             getline(cin, fileName);
             Dbms dbms(fileName);
             dbms.info();
+        } else if (query == "BUFFER"){
+            BufferManager buffermanager;
+            buffermanager.menu_buffer();
         }
 
         cout << "Continua (s/n)? ";

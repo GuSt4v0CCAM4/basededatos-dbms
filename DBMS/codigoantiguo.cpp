@@ -688,7 +688,7 @@ public:
                 const char* textoChar = aux.c_str();
                 lista.insertar(textoChar);
             }else if(opc==2){
-                eliminar_re(lista,sector_);
+                eliminar_re(lis ta,sector_);
             }else if(opc==3){
                 mover_registro(lista);
             }else if(opc==4){
@@ -698,7 +698,7 @@ public:
             }else if(opc==6){
                 break;
             }else{
-                cout<<"Opcion incorrecta."<<endl;
+                 cout<<"Opcion incorrecta."<<endl;
             }
         }
     }
