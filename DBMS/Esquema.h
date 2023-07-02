@@ -4,7 +4,7 @@
 #include "fstream"
 #include "sstream"
 #include "vector"
-
+using namespace std;
 class Attribute {
 public:
     string name;
