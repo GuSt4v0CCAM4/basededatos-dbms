@@ -19,7 +19,7 @@ private:
     int numPlatos;
 
 public:
-    Dbms(const string& diskName) : diskName(diskName) {
+    Dbms(const string& diskName) : diskName(diskName) { //constructor donde esta el valro del nombre del dico a utilizar
         ifstream diskFile(diskName + "/" + diskName + ".txt");
         if (!diskFile) {
             cout << "No se pudo abrir el archivo del disco." << endl;
@@ -27,6 +27,7 @@ public:
         }
 
         diskFile >> capacidadDelSector >> numSectores >> numPistas >> numSuperficies >> numPlatos;
+        //recuperamos los valores de los diferentes partes del disco
         diskFile.close();
     }
 

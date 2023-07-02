@@ -23,6 +23,119 @@ private:
     vector<Attribute> attributes;
 
 public:
+    void processLongitudVariable(string diskname, string dbname){
+        string outfile = diskname + "/" + dbname + "_esquema_var.txt";
+        ofstream esquema(outfile);
+        string dbnamefix = dbname + ".txt";
+        ifstream db(dbnamefix);
+        if (!esquema || !db) {
+            cout << "Error al abrir el esquema y/o la base de datos." << endl;
+            return;
+        }
+        cout<<"variableee"<<endl;
+        vector<Attribute> variableAttributes;
+
+        string line;
+        size_t recordIndex = 1;
+
+        while (getline(db, line)) {
+            istringstream lineStream(line); //creamos un objeto de tipo istringstream, para leer y analizar
+            string value;
+            size_t position = 1;
+            size_t sum = 0; // Variable para almacenar la sumatoria de longitudes por línea
+
+            while (getline(lineStream, value, ',')) {
+                if (!value.empty() && value.front() == '"' && value.back() != '"') {
+                    string nextValue;
+                    while (getline(lineStream, nextValue, ',')) {
+                        value += "," + nextValue;
+                        if (nextValue.back() == '"') {
+                            break;
+                        }
+                    }
+                }
+
+                // Eliminar comillas iniciales y finales si están presentes
+                if (!value.empty() && value.front() == '"' && value.back() == '"') {
+                    value = value.substr(1, value.length() - 2);
+                }
+
+                if (recordIndex == 1) {
+                    esquema << position << "|";
+                }
+
+                if (!value.empty()) {
+                    esquema << value.length();
+                    sum += value.length(); // Sumar la longitud actual al total de la línea
+                }
+
+                esquema << "|";
+
+                position++;
+            }
+
+            esquema << " #" << sum << "#" << endl; // Imprimir la sumatoria de longitudes en la línea
+
+            if (recordIndex == 1) {
+                for (size_t i = 1; i < position; i++) {
+                    if (i != position - 1) {
+                        esquema << i << "|";
+                    }
+                    else {
+                        esquema << i;
+                    }
+                }
+                esquema << endl;
+            }
+
+            recordIndex++;
+        }
+
+        esquema.close();
+
+
+        cout << "Se ha creado el archivo de esquema exitosamente." << endl;
+        removeFirstLine(outfile);
+        removeFirstLine(outfile);
+
+
+    }
+    void removeFirstLine(const string& filename) {
+        ifstream input(filename);
+        if (!input) {
+            cout << "Error al abrir el archivo." << endl;
+            return;
+        }
+
+        vector<string> lines;
+        string line;
+
+        // Leer todas las líneas del archivo
+        while (getline(input, line)) {
+            lines.push_back(line);
+        }
+
+        input.close();
+
+        // Eliminar la primera línea
+        lines.erase(lines.begin());
+
+        ofstream output(filename);
+        if (!output) {
+            cout << "Error al abrir el archivo." << endl;
+            return;
+        }
+
+        // Escribir las líneas restantes en el archivo
+        for (const string& line : lines) {
+            output << line << endl;
+        }
+
+        output.close();
+
+        //cout << "Se ha eliminado la primera línea del archivo exitosamente." << endl;
+    }
+
     void extractAttributes(const string& header) {
         istringstream iss(header);
         string attribute;
@@ -76,8 +189,6 @@ public:
 
         cout << "El resultado se ha guardado en weightline.txt." << endl;
     }
-
-
 
     void processEsquema(const string& inputFile, const string& outputFile) {
         ifstream esquemaFile(outputFile);

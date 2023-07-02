@@ -56,13 +56,22 @@ int main() {
         }else if(query == "READ") {
             cout<<"Ingrese el nombre de la Base de Datos para cargar (sin extensión): ";
             getline(cin, DataBaseName);
-            string DataBase = DataBaseName + ".txt";
-            string EsquemaName = DataBaseName + "_esquema.txt";
-            esquema.processEsquema(DataBase,EsquemaName);
             cout<<"Ingrese el nombre del Disco a utilizar:";
             getline(cin,bd);
+            string DataBase = DataBaseName + ".txt";
+            string EsquemaName = DataBaseName + "_esquema.txt";
+            cout<<"Ingrese el tipo de registro a utilizar:";
+            cout<<"1. Longitud Variable"<<endl;
+            cout<<"2. Longitud Fija"<<endl;
+            int opcion;
+            cout<<"Opcion: "; cin>>opcion;
+            if(opcion == 1){
+                esquema.processLongitudVariable(bd,DataBaseName);
+            }else if(opcion == 2){
+                esquema.processEsquema(DataBase,EsquemaName);
+            }
             Dbms dbms(bd);
-            dbms.fillSectors(DataBase);
+            //dbms.fillSectors(DataBase);
         } else if (query == "CREATE") {
             cout << "Ingrese el nombre del archivo: ";
             getline(std::cin, fileName);
