@@ -45,13 +45,14 @@ public:
         while (getline(countFile, countLineFile)){
             totalLineCount++;
         }
+        countFile.close();
         if(pesoLine > capacidadDelSector){
             cout<<"El peso del registro excede al peso del Sector"<<endl;
         }else{
             ifstream databaseFile(dbName);
             string line;
             int lineCount = 0;
-            getline(databaseFile, line);
+            //getline(databaseFile, line);
             linePerSector = capacidadDelSector / pesoLine;
             bool copyCompleted = false;
 

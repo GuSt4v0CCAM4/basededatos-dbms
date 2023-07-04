@@ -172,86 +172,7 @@ public:
 };
 
 
-/*
- void insertar_lista(ListaEnlazada &lista,string direc){
-        ifstream archivo(direc);
-        if (!archivo) {
-            std::cout << "No se pudo abrir el archivo." << std::endl;
-            return;
-        }
-        string cadena;
-        int cont = 0;
-        while(getline(archivo,cadena)){
-            const char* textoChar = cadena.c_str();
-            lista.insertar(textoChar);
-        }
-        archivo.close();
-    }
 
-    void mover_registro(ListaEnlazada &lista){
-        int n;
-        cout<<"Numero de registro a mover(n): ";cin>>n;
-        if(!lista.find(n)){
-            cout<<"Registro no encontrado"<<endl;
-            return;
-        }else{
-            int nro2;
-            cout<<"Nro de registro a sobreescribir: ";cin>>nro2;
-            lista.moverregistro(n,nro2);
-        }
-    }
-
-    void eliminar_re(ListaEnlazada &lista,string direc){
-        ifstream archivo1(direc);
-        int nro;
-        string cadex;
-        cout<<"Nro de registro a eliminar: ";cin>>nro;
-        cout<<"\n\n---Menu---"<<endl;
-        for(int i=0;i<nro;i++){
-            getline(archivo1,cadex);
-            cout<<cadex<<endl;
-        }
-        const char* textoChar = cadex.c_str();
-        lista.eliminar(textoChar);
-    }
-    void menu_IEM(){
-        int array[4];
-        //Para la impresion de un sector es necesario datos como
-        //la superficie, pista, sector donde se ubica
-        cout<<"plato: ";cin>>array[3];
-        cout<<"superficie: ";cin>>array[0];
-        cout<<"pista: ";cin>>array[1];
-        cout<<"sector: ";cin>>array[2];
-        string sector_= name+"//"+to_string(array[3])+"//"+to_string(array[0])+"//"+to_string(array[1])+"//"+to_string(array[2])+".txt"; // se abre el archivo.txt con esta direccion
-
-        int opc;
-        ListaEnlazada lista;
-        insertar_lista(lista,sector_);
-
-        while(true){
-            cout<<"\nMenu:\n1.Insertar\n2.Eliminar\n3.Mover\n4.Mostrar\n5.Actualizar sector\n6.Salir\nOpcion: ";cin>>opc;
-            cin.ignore();
-            if(opc==1){
-                string aux;
-                cout<<"Registro: ";getline(cin,aux);
-                const char* textoChar = aux.c_str();
-                lista.insertar(textoChar);
-            }else if(opc==2){
-                eliminar_re(lis ta,sector_);
-            }else if(opc==3){
-                mover_registro(lista);
-            }else if(opc==4){
-                lista.mostrar();
-            }else if(opc==5){
-                lista.guardar_archivo(sector_);
-            }else if(opc==6){
-                break;
-            }else{
-                 cout<<"Opcion incorrecta."<<endl;
-            }
-        }
-    }
- */
 class LRUBufferManager {
 private:
     int capacity; // capacidad del buffer pool
@@ -444,7 +365,84 @@ public:
             mruBufferManager.printBuffer();
         }
     }
+    void insertar_lista(ListaEnlazada &lista,string direc){
+        ifstream archivo(direc);
+        if (!archivo) {
+            std::cout << "No se pudo abrir el archivo." << std::endl;
+            return;
+        }
+        string cadena;
+        int cont = 0;
+        while(getline(archivo,cadena)){
+            const char* textoChar = cadena.c_str();
+            lista.insertar(textoChar);
+        }
+        archivo.close();
+    }
 
+    void mover_registro(ListaEnlazada &lista){
+        int n;
+        cout<<"Numero de registro a mover(n): ";cin>>n;
+        if(!lista.find(n)){
+            cout<<"Registro no encontrado"<<endl;
+            return;
+        }else{
+            int nro2;
+            cout<<"Nro de registro a sobreescribir: ";cin>>nro2;
+            lista.moverregistro(n,nro2);
+        }
+    }
+
+    void eliminar_re(ListaEnlazada &lista,string direc){
+        ifstream archivo1(direc);
+        int nro;
+        string cadex;
+        cout<<"Nro de registro a eliminar: ";cin>>nro;
+        cout<<"\n\n---Menu---"<<endl;
+        for(int i=0;i<nro;i++){
+            getline(archivo1,cadex);
+            cout<<cadex<<endl;
+        }
+        const char* textoChar = cadex.c_str();
+        lista.eliminar(textoChar);
+    }
+    void menu_IEM(){
+        int array[4];
+        //Para la impresion de un sector es necesario datos como
+        //la superficie, pista, sector donde se ubica
+        cout<<"plato: ";cin>>array[3];
+        cout<<"superficie: ";cin>>array[0];
+        cout<<"pista: ";cin>>array[1];
+        cout<<"sector: ";cin>>array[2];
+        string sector_= name+"//"+to_string(array[3])+"//"+to_string(array[0])+"//"+to_string(array[1])+"//"+to_string(array[2])+".txt"; // se abre el archivo.txt con esta direccion
+
+        int opc;
+        ListaEnlazada lista;
+        insertar_lista(lista,sector_);
+
+        while(true){
+            cout<<"\nMenu:\n1.Insertar\n2.Eliminar\n3.Mover\n4.Mostrar\n5.Actualizar sector\n6.Salir\nOpcion: ";cin>>opc;
+            cin.ignore();
+            if(opc==1){
+                string aux;
+                cout<<"Registro: ";getline(cin,aux);
+                const char* textoChar = aux.c_str();
+                lista.insertar(textoChar);
+            }else if(opc==2){
+                eliminar_re(lista,sector_);
+            }else if(opc==3){
+                mover_registro(lista);
+            }else if(opc==4){
+                lista.mostrar();
+            }else if(opc==5){
+                lista.guardar_archivo(sector_);
+            }else if(opc==6){
+                break;
+            }else{
+                cout<<"Opcion incorrecta."<<endl;
+            }
+        }
+    }
     void Algoritmo_CLOCK(){
         int n,capacity,N_bloque;
         cout<<"Numero de sectores en un bloque: ";cin>>n;
@@ -454,6 +452,7 @@ public:
         while(true){
             cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
             if(N_bloque<1){
+                m
                 break;
             }
             clockBufferManager.refer(N_bloque);

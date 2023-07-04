@@ -71,7 +71,7 @@ int main() {
                 esquema.processEsquema(DataBase,EsquemaName);
             }
             Dbms dbms(bd);
-            //dbms.fillSectors(DataBase);
+            dbms.fillSectors(DataBase);
         } else if (query == "CREATE") {
             cout << "Ingrese el nombre del archivo: ";
             getline(std::cin, fileName);
