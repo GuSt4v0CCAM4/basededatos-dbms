@@ -17,6 +17,7 @@ class Nodo {
 public:
     char* dato;
     Nodo* siguiente;
+    string diskName;
 
     Nodo(const char* dato) {
         this->dato = new char[strlen(dato) + 1];
@@ -433,8 +434,16 @@ public:
     }
     void Algoritmo_LRU(){
         int n,capacity,N_bloque;
-        cout<<"Numero de sectores en un bloque: ";cin>>n;
-        cout<<"Capacidad del Buffer manager: ";cin>>capacity;
+        string fileNumBloques = diskname + "/infoBloque.txt";
+        ifstream sectors(fileNumBloques);
+        sectors >> n;
+        sectors.close();
+        //cout<<"Numero de sectores en un bloque: ";cin>>n;
+        //cout<<"Capacidad del Buffer manager: ";cin>>capacity;
+        string infoFrame = diskname + "/BufferPool/info.txt";
+        ifstream frame(infoFrame);
+        frame >> capacity;
+        frame.close();
         LRUBufferManager lruBufferManager(capacity);
         while(true){
             cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
@@ -465,8 +474,16 @@ public:
 
     void Algoritmo_MRU(){
         int n,capacity,N_bloque;
-        cout<<"Numero de sectores en un bloque: ";cin>>n;
-        cout<<"Capacidad del Buffer manager: ";cin>>capacity;
+        string fileNumBloques = diskname + "/infoBloque.txt";
+        ifstream sectors(fileNumBloques);
+        sectors >> n;
+        sectors.close();
+        //cout<<"Numero de sectores en un bloque: ";cin>>n;
+        string infoFrame = diskname + "/BufferPool/info.txt";
+        ifstream frame(infoFrame);
+        frame >> capacity;
+        frame.close();
+        //cout<<"Capacidad del Buffer manager: ";cin>>capacity;
         //int accessPattern[] = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};
         MRUBufferManager mruBufferManager(capacity);
         while(true){
