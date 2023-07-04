@@ -328,42 +328,13 @@ private:
     int numFrames;
     int FrameSize;
     int capacidadBufferPool;
+    string diskname;
 public:
     BufferManager(int num, int size) : numFrames(num), FrameSize(size) {
         capacidadBufferPool = numFrames * FrameSize;
     }
-    BufferManager(){
-
-    }
-    void Algoritmo_LRU(){
-        int n,capacity,N_bloque;
-        cout<<"Numero de sectores en un bloque: ";cin>>n;
-        cout<<"Capacidad del Buffer manager: ";cin>>capacity;
-        LRUBufferManager lruBufferManager(capacity);
-        while(true){
-            cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
-            if(N_bloque<1){
-                break;
-            }
-            lruBufferManager.refer(N_bloque);
-            lruBufferManager.printBuffer();
-        }
-    }
-
-    void Algoritmo_MRU(){
-        int n,capacity,N_bloque;
-        cout<<"Numero de sectores en un bloque: ";cin>>n;
-        cout<<"Capacidad del Buffer manager: ";cin>>capacity;
-        //int accessPattern[] = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};
-        MRUBufferManager mruBufferManager(capacity);
-        while(true){
-            cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
-            if(N_bloque<1){
-                break;
-            }
-            mruBufferManager.refer(N_bloque);
-            mruBufferManager.printBuffer();
-        }
+    BufferManager(string a){
+        diskname = a;
     }
     void insertar_lista(ListaEnlazada &lista,string direc){
         ifstream archivo(direc);
@@ -407,18 +378,35 @@ public:
         lista.eliminar(textoChar);
     }
     void menu_IEM(){
-        int array[4];
         //Para la impresion de un sector es necesario datos como
         //la superficie, pista, sector donde se ubica
-        cout<<"plato: ";cin>>array[3];
-        cout<<"superficie: ";cin>>array[0];
-        cout<<"pista: ";cin>>array[1];
-        cout<<"sector: ";cin>>array[2];
-        string sector_= name+"//"+to_string(array[3])+"//"+to_string(array[0])+"//"+to_string(array[1])+"//"+to_string(array[2])+".txt"; // se abre el archivo.txt con esta direccion
+        int tamanioSector = 0, sector, pista, superficie, plato;
+        cout << "Ingrese el numero de plato: ";
+        cin >> plato;
+        cout << "Ingrese el numero de superficie: ";
+        cin >> superficie;
+        cout << "Ingrese el numero de pista: ";
+        cin >> pista;
+        cout << "Ingrese el numero de sector: ";
+        cin >> sector;
+
+        string carpetaPlato = diskname + "/Plato " + to_string(plato);
+        cout << "Plato " << plato << ": " << endl;
+        string carpetaSuperficie = carpetaPlato + "/Superficie " + to_string(superficie);
+        cout << " Superficie " << superficie<< ": " << endl;
+        string carpetaPista = carpetaSuperficie + "/Pista " + to_string(pista);
+        cout << "     Pista " << to_string(pista) << ": " << endl;
+        string position;
+        position += (plato < 9 ? "0" : "") + to_string(plato);
+        position += (superficie < 9 ? "0" : "") + to_string(superficie);
+        position += (pista < 9 ? "0" : "") + to_string(pista);
+        position += (sector < 9 ? "0" : "") + to_string(sector);
+        string archivoSector = carpetaPista + "/Sector " + position + ".txt";
+
 
         int opc;
         ListaEnlazada lista;
-        insertar_lista(lista,sector_);
+        insertar_lista(lista,archivoSector);
 
         while(true){
             cout<<"\nMenu:\n1.Insertar\n2.Eliminar\n3.Mover\n4.Mostrar\n5.Actualizar sector\n6.Salir\nOpcion: ";cin>>opc;
@@ -429,13 +417,13 @@ public:
                 const char* textoChar = aux.c_str();
                 lista.insertar(textoChar);
             }else if(opc==2){
-                eliminar_re(lista,sector_);
+                eliminar_re(lista,archivoSector);
             }else if(opc==3){
                 mover_registro(lista);
             }else if(opc==4){
                 lista.mostrar();
             }else if(opc==5){
-                lista.guardar_archivo(sector_);
+                lista.guardar_archivo(archivoSector);
             }else if(opc==6){
                 break;
             }else{
@@ -443,17 +431,107 @@ public:
             }
         }
     }
-    void Algoritmo_CLOCK(){
+    void Algoritmo_LRU(){
         int n,capacity,N_bloque;
         cout<<"Numero de sectores en un bloque: ";cin>>n;
         cout<<"Capacidad del Buffer manager: ";cin>>capacity;
+        LRUBufferManager lruBufferManager(capacity);
+        while(true){
+            cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
+            if(N_bloque<1){
+                cout<<"buffer pool bloques: "<<endl;
+                lruBufferManager.printBuffer();
+
+                int n;
+                cout<<"numero de bloque a modificar: ";cin>>n;
+                string line;
+                ifstream archivo(diskname+"/DirectorioDeBloques.txt");
+                for(int i=0;i<n;i++){
+                    getline(archivo,line);
+                }
+                cout<<line<<endl;
+                int opc;
+                cout<<"\nSe modificara algun registro\n1.Si\n2.No: ";cin>>opc;
+                if(opc == 1){
+                    menu_IEM();
+                }else{
+                    break;
+                }
+            }
+            lruBufferManager.refer(N_bloque);
+            lruBufferManager.printBuffer();
+        }
+    }
+
+    void Algoritmo_MRU(){
+        int n,capacity,N_bloque;
+        cout<<"Numero de sectores en un bloque: ";cin>>n;
+        cout<<"Capacidad del Buffer manager: ";cin>>capacity;
+        //int accessPattern[] = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};
+        MRUBufferManager mruBufferManager(capacity);
+        while(true){
+            cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
+            if(N_bloque<1){
+                cout<<"buffer pool bloques: "<<endl;
+                mruBufferManager.printBuffer();
+
+                int n;
+                cout<<"numero de bloque a modificar: ";cin>>n;
+                string line;
+                ifstream archivo(diskname+"/DirectorioDeBloques.txt");
+                for(int i=0;i<n;i++){
+                    getline(archivo,line);
+                }
+                cout<<line<<endl;
+                int opc;
+                cout<<"\nSe modificara algun registro\n1.Si\n2.No: ";cin>>opc;
+                if(opc == 1){
+                    menu_IEM();
+                }else{
+                    break;
+                }
+            }
+            mruBufferManager.refer(N_bloque);
+            mruBufferManager.printBuffer();
+        }
+    }
+
+    void Algoritmo_CLOCK(){
+        int capacity,N_bloque, n;
+        string fileNumBloques = diskname + "/infoBloque.txt";
+        ifstream sectors(fileNumBloques);
+        sectors >> n;
+        sectors.close();
+        string infoFrame = diskname + "/BufferPool/info.txt";
+        ifstream frame(infoFrame);
+        frame >> capacity;
+        frame.close();
+        //cout<<capacity;
+        //cout<<"Capacidad del Buffer manager: ";cin>>capacity;
         //int accessPattern[] = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};
         ClockBufferManager clockBufferManager(capacity);
         while(true){
             cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
             if(N_bloque<1){
-                m
-                break;
+                cout<<"buffer pool bloques: "<<endl;
+                clockBufferManager.printBuffer();
+
+                int n;
+                cout<<"numero de bloque a modificar: ";cin>>n;
+                string line;
+                ifstream archivo(diskname+"/DirectorioDeBloques.txt");
+                for(int i=0;i<n;i++){
+                    getline(archivo,line);
+                }
+                cout<<line<<endl;
+                cin.ignore();
+                int opc;
+                cout<<"\nSe modificara algun registro\n1.Si\n2.No: ";cin>>opc;
+                if(opc == 1){
+                    menu_IEM();
+                }else{
+                    break;
+                }
             }
             clockBufferManager.refer(N_bloque);
             clockBufferManager.printBuffer();

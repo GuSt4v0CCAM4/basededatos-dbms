@@ -42,7 +42,7 @@ public:
     }
 };
 int main() {
-    int numSuperficies=2, numPistas, numSectores, capacidadSector, numPlatos;
+    int numSupBrficies=2, numPistas, numSectores, capacidadSector, numPlatos;
     string query, fileName, search, DataBaseName, bd, response;;
     File file;
     Esquema esquema;
@@ -96,7 +96,10 @@ int main() {
             Dbms dbms(fileName);
             dbms.info();
         } else if (query == "BUFFER"){
-            BufferManager buffermanager;
+            string name_dico;
+            cout<<"Ingrese el nombre del disco: ";
+            getline(cin,name_dico);
+            BufferManager buffermanager(name_dico);
             buffermanager.menu_buffer();
         }
 
