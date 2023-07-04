@@ -13,6 +13,8 @@
 using namespace std;
 namespace fs = filesystem;
 
+//comentario
+
 class Nodo {
 public:
     char* dato;
