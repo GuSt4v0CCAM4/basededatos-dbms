@@ -416,7 +416,25 @@ public:
             cin.ignore();
             if(opc==1){
                 string aux;
-                cout<<"Registro: ";getline(cin,aux);
+                int opc2;
+                cout<<"\n1.Insertar registro por consola.\n2.Insertar registro de un file.\nOpcion";cin>>opc2;
+                if(opc2 == 1){
+                    cout<<"Registro: ";getline(cin,aux);
+                }else if(opc2 == 2){
+                    string FileBD;
+                    cin.ignore();
+                    cout<<"Nombre del file.";
+                    getline(cin,FileBD);
+                    ifstream filenombre(FileBD);
+                    getline(filenombre,aux);
+                    int numero_de_registro;
+                    cout<<"Numero de registro: ";cin>>numero_de_registro;
+                    for(int i=0;i<numero_de_registro;i++){
+                        getline(filenombre,aux);
+                        cout<<"El registo a insertar es: "<<aux<<endl;
+                    }
+                }
+
                 const char* textoChar = aux.c_str();
                 lista.insertar(textoChar);
             }else if(opc==2){
@@ -493,18 +511,17 @@ public:
             if(N_bloque<1){
                 cout<<"buffer pool bloques: "<<endl;
                 mruBufferManager.printBuffer();
-
-                int n;
-                cout<<"numero de bloque a modificar: ";cin>>n;
-                string line;
-                ifstream archivo(diskname+"/DirectorioDeBloques.txt");
-                for(int i=0;i<n;i++){
-                    getline(archivo,line);
-                }
-                cout<<line<<endl;
                 int opc;
-                cout<<"\nSe modificara algun registro\n1.Si\n2.No: ";cin>>opc;
+                cout<<"\nSe modificara algun registro\n1.Si\n2.No\nOpcion: ";cin>>opc;
                 if(opc == 1){
+                    int n;
+                    cout<<"numero de bloque a modificar: ";cin>>n;
+                    string line;
+                    ifstream archivo(diskname+"/DirectorioDeBloques.txt");
+                    for(int i=0;i<n;i++){
+                        getline(archivo,line);
+                    }
+                    cout<<line<<endl;
                     menu_IEM();
                 }else{
                     break;
