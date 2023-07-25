@@ -41,6 +41,7 @@ public:
         bufferManager.createBufferPool(bd);
     }
 };
+
 int main() {
     int numSupBrficies=2, numPistas, numSectores, capacidadSector, numPlatos;
     string query, fileName, search, DataBaseName, bd, response;;

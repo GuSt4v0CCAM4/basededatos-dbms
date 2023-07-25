@@ -1,72 +1,118 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <vector>
 #include <string>
+#include <sstream>
+#include <map>
+using namespace std;
 
-class Attribute {
-public:
-    std::string name;
-    size_t length;
-
-    Attribute(const std::string& attributeName, size_t attributeLength) {
-        name = attributeName;
-        length = attributeLength;
-    }
+struct nodo {
+    string clave;
+    string nombreArchivo;
 };
 
-void writeSchema(const std::string& inputFile, const std::string& outputFile) {
-    std::ifstream input(inputFile);
-    std::ofstream output(outputFile);
+map<string, nodo> BPlusTree;
 
-    if (!input || !output) {
-        std::cout << "Error al abrir los archivos." << std::endl;
-        return;
-    }
-
-    std::vector<Attribute> attributes;
-    std::vector<size_t> attributeLengths;
-
-    std::string header;
-    std::getline(input, header);
-    std::istringstream headerStream(header);
-
-    std::string attributeName;
-    while (std::getline(headerStream, attributeName, ',')) {
-        attributes.push_back(Attribute(attributeName, 0));
-        attributeLengths.push_back(0);
-    }
-
-    std::string line;
-    while (std::getline(input, line)) {
-        std::istringstream lineStream(line);
-        std::string value;
-        size_t attributeIndex = 0;
-
-        while (std::getline(lineStream, value, ',')) {
-            size_t length = value.length();
-            if (length > attributeLengths[attributeIndex]) {
-                attributeLengths[attributeIndex] = length;
+void searchBPlusTree(const string& clave) {
+    auto it = BPlusTree.find(clave);
+    if (it != BPlusTree.end()) {
+        string archivo = it->second.nombreArchivo;
+        ifstream file(archivo);
+        if (file.is_open()) {
+            string linea;
+            while (getline(file, linea)) {
+                istringstream ss(linea);
+                string atributo;
+                while (getline(ss, atributo, ',')) {
+                    cout << atributo << " ";
+                }
+                cout << " (En archivo: " << archivo << ")" << endl;
             }
-            attributeIndex++;
+            file.close();
+        }
+        else {
+            cout << "Error al abrir el archivo: " << archivo << endl;
         }
     }
-
-    for (size_t i = 0; i < attributes.size(); i++) {
-        output << attributes[i].name << " (" << attributeLengths[i] << ")" << std::endl;
+    else {
+        cout << "Registro no encontrado en el B+ tree." << endl;
     }
-
-    output.close();
-
-    std::cout << "Se ha creado el archivo de esquema exitosamente." << std::endl;
 }
 
+void createFolder(string diskname, int capacidadSector, int numSectores, int numPistas, int numSuperficies, int numPlatos) {
+
+    for (int plato = 0; plato < numPlatos; ++plato) {
+        string carpetaPlato = diskname + "/Plato " + to_string(plato + 1);
+
+        for (int superficie = 0; superficie < numSuperficies; ++superficie) {
+            string carpetaSuperficie = carpetaPlato + "/Superficie " + to_string(superficie + 1);
+
+            for (int pista = 0; pista < numPistas; ++pista) {
+                string carpetaPista = carpetaSuperficie + "/Pista " + to_string(pista + 1);
+
+                for (int sector = 0; sector < numSectores; ++sector) {
+                    string position;
+                    position += (plato < 9 ? "0" : "") + to_string(plato + 1);
+                    position += (superficie < 9 ? "0" : "") + to_string(superficie + 1);
+                    position += (pista < 9 ? "0" : "") + to_string(pista + 1);
+                    position += (sector < 9 ? "0" : "") + to_string(sector + 1);
+                    string archivoSector = carpetaPista + "/Sector " + position + ".txt";
+
+                    ifstream file(archivoSector);
+                    if (file.is_open()) {
+                        string linea;
+                        while (getline(file, linea)) {
+                            istringstream ss(linea);
+                            string clave;
+                            getline(ss, clave, ','); // La clave es el primer atributo
+                            nodo registro = { clave, archivoSector };
+                            BPlusTree.insert({ clave, registro });
+                        }
+                        file.close();
+                    }
+                    else {
+                        cout << "Error al abrir el archivo: " << archivoSector << endl;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 int main() {
-    std::string inputFile = "titanic.txt";
-    std::string outputFile = "schema.txt";
+    string diskname = "aldechi";
+    int capacidadSector = 600;
+    int numSectores = 15;
+    int numPistas = 10;
+    int numSuperficies = 2;
+    int numPlatos = 3;
 
-    writeSchema(inputFile, outputFile);
+    createFolder(diskname, capacidadSector, numSectores, numPistas, numSuperficies, numPlatos);
 
+    int opcion;
+    string clave;
+    do {
+        cout << "====== MENÚ ======" << endl;
+        cout << "1. Buscar registro por clave" << endl;
+        cout << "0. Salir" << endl;
+        cout << "===================" << endl;
+        cout << "Ingrese opción: ";
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1:
+                cout << "Ingrese la clave del registro a buscar: ";
+                cin >> clave;
+                searchBPlusTree(clave);
+                break;
+            case 0:
+                cout << "Saliendo del programa." << endl;
+                break;
+            default:
+                cout << "Opción inválida. Intente nuevamente." << endl;
+                break;
+        }
+    } while (opcion != 0);
 
     return 0;
 }
