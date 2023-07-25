@@ -82,10 +82,8 @@ int main() {
         } else if (query == "SELECT") {
             cout << "Ingrese el nombre del disco: ";
             getline(std::cin, fileName);
-            cout << "Ingrese la cadena de búsqueda: ";
-            getline(std::cin, search);
             Dbms dbms(fileName);
-            dbms.select(fileName, search);
+            dbms.select();
             //megatron.select(fileName, search);
         } else if (query == "LOCATION") {
             //megatron.location();

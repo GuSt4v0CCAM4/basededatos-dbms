@@ -62,7 +62,7 @@ public:
             temp->siguiente = nuevoNodo;
         }
     }
-
+//xd
     void eliminar(const char* data) {
         cout<<data<<endl;
         if (cabeza == nullptr) {

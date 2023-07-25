@@ -6,6 +6,7 @@
 #include <string>
 #include "BufferManager.h"
 #include "Disco.h"
+#include "map"
 using namespace std;
 namespace fs = filesystem;
 
@@ -17,6 +18,7 @@ private:
     int numPistas;
     int numSuperficies;
     int numPlatos;
+
 
 public:
     Dbms(const string& diskName) : diskName(diskName) { //constructor donde esta el valro del nombre del dico a utilizar
@@ -30,6 +32,12 @@ public:
         //recuperamos los valores de los diferentes partes del disco
         diskFile.close();
     }
+    struct nodo {
+        string clave;
+        string nombreArchivo;
+    };
+
+    map<string, nodo> BPlusTree;
 
     void fillSectors(string dbName) {
         int pesoLine = 0, linePerSector = 0, totalLineCount = 0;
@@ -323,10 +331,108 @@ public:
             return;
         }
     }
-    void select(string diskname, string search) {
+    void searchBPlusTree(const string& clave) {
+        auto it = BPlusTree.find(clave);
+        if (it != BPlusTree.end()) {
+            string archivo = it->second.nombreArchivo;
+            ifstream file(archivo);
+            if (file.is_open()) {
+                string linea;
+                while (getline(file, linea)) {
+                    istringstream ss(linea);
+                    string atributo;
+                    while (getline(ss, atributo, ',')) {
+                        cout << atributo << " ";
+                    }
+                    cout << " (En archivo: " << archivo << ")" << endl;
+                }
+                file.close();
+            }
+            else {
+                cout << "Error al abrir el archivo: " << archivo << endl;
+            }
+        }
+        else {
+            cout << "Registro no encontrado en el B+ tree." << endl;
+        }
+    }
+
+    void agregarClaves(string diskname, int capacidadSector, int numSectores, int numPistas, int numSuperficies, int numPlatos) {
+
+        for (int plato = 0; plato < numPlatos; ++plato) {
+            string carpetaPlato = diskname + "/Plato " + to_string(plato + 1);
+
+            for (int superficie = 0; superficie < numSuperficies; ++superficie) {
+                string carpetaSuperficie = carpetaPlato + "/Superficie " + to_string(superficie + 1);
+
+                for (int pista = 0; pista < numPistas; ++pista) {
+                    string carpetaPista = carpetaSuperficie + "/Pista " + to_string(pista + 1);
+
+                    for (int sector = 0; sector < numSectores; ++sector) {
+                        string position;
+                        position += (plato < 9 ? "0" : "") + to_string(plato + 1);
+                        position += (superficie < 9 ? "0" : "") + to_string(superficie + 1);
+                        position += (pista < 9 ? "0" : "") + to_string(pista + 1);
+                        position += (sector < 9 ? "0" : "") + to_string(sector + 1);
+                        string archivoSector = carpetaPista + "/Sector " + position + ".txt";
+
+                        ifstream file(archivoSector);
+                        if (file.is_open()) {
+                            string linea;
+                            while (getline(file, linea)) {
+                                istringstream ss(linea);
+                                string clave;
+                                getline(ss, clave, ','); // La clave es el primer atributo
+                                nodo registro = { clave, archivoSector };
+                                BPlusTree.insert({ clave, registro });
+                            }
+                            file.close();
+                        }
+                        else {
+                            cout << "Error al abrir el archivo: " << archivoSector << endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void select() {
+        string diskname = diskName;
+        int capacidadSector = capacidadDelSector;
+        int Sectores = numSectores;
+        int Pistas = numPistas;
+        int Superficies = numSuperficies;
+        int Platos = numPlatos;
+
+        agregarClaves(diskname, capacidadSector, Sectores, Pistas, Superficies, Platos);
+
+        int opcion;
+        string clave;
+        do {
+            cout << "====== MENÚ ======" << endl;
+            cout << "1. Buscar registro por clave" << endl;
+            cout << "0. Salir" << endl;
+            cout << "===================" << endl;
+            cout << "Ingrese opción: ";
+            cin >> opcion;
+
+            switch (opcion) {
+                case 1:
+                    cout << "Ingrese la clave del registro a buscar: ";
+                    cin >> clave;
+                    searchBPlusTree(clave);
+                    break;
+                case 0:
+                    cout << "Saliendo del programa." << endl;
+                    break;
+                default:
+                    cout << "Opción inválida. Intente nuevamente." << endl;
+                    break;
+            }
+        } while (opcion != 0);
+        /*
         //recuperamos la info del bufferpool
-        string nombredisco = diskname;
-        string busqueda = search;
+        string nombredisco = diskName;
         int numframes = 0, sizeframes = 0;
         ifstream fileBufferPool(diskName + "/BufferPool/info.txt");
         fileBufferPool >> numframes >> sizeframes;
@@ -343,6 +449,8 @@ public:
             disco.select(nombredisco, busqueda);
             cout <<nombredisco<<"  "<<busqueda<<endl;
         }
+        */
+
     }
 };
 
