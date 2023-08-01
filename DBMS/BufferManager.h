@@ -261,69 +261,68 @@ public:
 
 class ClockBufferManager {
 private:
-    int capacity; // Capacidad del buffer pool
-    unordered_map<int, pair<bool, bool>> buffer; // Mapa para almacenar las páginas en el buffer pool
-    vector<int> clock; // Lista de páginas en el buffer pool en orden circular
-    int hand; // Posición actual del puntero del algoritmo CLOCK
+    struct Frame {
+        int frameID;
+        int pageID;
+        bool dirtyBit;
+        int pinCount;
+        bool refBit;
+    };
+    std::vector<Frame> buffer;
+    int clockHand;
 
 public:
-    ClockBufferManager(int capacity) : capacity(capacity), hand(0) {
-        clock.resize(capacity, -1); // Inicializar la lista con páginas vacías
+    ClockBufferManager(int numFrames) : buffer(numFrames), clockHand(0) {
+        // Iniciamos el valor de refBit en Falso
+        for (int i = 0; i < numFrames; ++i) {
+            buffer[i].frameID = i;
+            buffer[i].pageID = -1; // Set an invalid initial page ID.
+            buffer[i].dirtyBit = false;
+            buffer[i].pinCount = 0;
+            buffer[i].refBit = false;
+        }
     }
 
-    void refer(int page) {
-        // Verificar si la página ya está en el buffer pool
-        if (buffer.find(page) != buffer.end()) {
-            buffer[page].first = true; // Establecer el bit de referencia
-        } else {
-            // La página no está en el buffer pool
-
-            // Verificar si el buffer pool está lleno
-            if (buffer.size() == capacity) {
-                // El buffer pool está lleno, se debe reemplazar una página
-
-                while (true) {
-                    int currentPage = clock[hand]; // Obtener la página actual
-
-                    if (buffer[currentPage].first) {
-                        // La página tiene el bit de referencia establecido
-                        buffer[currentPage].first = false; // Resetear el bit de referencia
-                    } else {
-                        // La página no tiene el bit de referencia establecido
-
-                        buffer.erase(currentPage); // Eliminar la página del buffer pool
-                        buffer[page] = make_pair(true, true); // Agregar la nueva página al buffer pool
-
-                        clock[hand] = page; // Actualizar la página en la posición actual del puntero
-                        hand = (hand + 1) % capacity; // Mover el puntero al siguiente
-
-                        cout<<"Reemplazar página " << currentPage << " con página: " << page << endl;
-                        break;
-                    }
-
-                    hand = (hand + 1) % capacity; // Mover el puntero al siguiente
-                }
-            } else {
-                // El buffer pool aún tiene capacidad disponible
-
-                buffer[page] = make_pair(true, true); // Agregar la página al buffer pool
-
-                clock[hand] = page; // Actualizar la página en la posición actual del puntero
-                hand = (hand + 1) % capacity; // Mover el puntero al siguiente
+    void readPage(int pageID) {
+        // Comprobamos is la pagina esta en el buffer pool
+        for (auto& frame : buffer) {
+            if (frame.pageID == pageID) {
+                frame.refBit = true; // Establecemos el refBit en 1 sin mover la manecilla
+                return;
             }
         }
-    }
-    void printBuffer() {
-        cout << "Clock columna: ";
-        int start = hand;
+
+        // Buscamos la pagina con el refBit en 0 utilizando el algoritmo clock
         while (true) {
-            cout << clock[start] << " ";
-            start = (start + 1) % capacity;
-            if (start == hand)
-                break;
+            Frame& currentFrame = buffer[clockHand];
+            if (currentFrame.pinCount == 0) {
+                if (currentFrame.refBit) {
+                    currentFrame.refBit = false;
+                } else {
+                    // Reemplzamos la pagina existente
+                    currentFrame.pageID = pageID;
+                    currentFrame.refBit = true;
+                    // AGREGAR LOGICA ADICIONAL PAR AMANEJAR EL DRTY BIT (EN PROCESO)
+
+                    // Movemos la manecilla al siguiente frame
+                    clockHand = (clockHand + 1) % buffer.size();
+                    return;
+                }
+            }
+            // Movemos la manecilla al siguiente frame
+            clockHand = (clockHand + 1) % buffer.size();
         }
-        cout << endl;
     }
+    void printBuffer(){
+        cout << "Clock: "<<endl;
+        int start = clockHand;
+        for (int i = 0; i < buffer.size(); ++i) {
+            std::cout << "Frame " << buffer[start].frameID << " | Page ID " << buffer[start].pageID << " | Ref Bit " << buffer[start].refBit << " | Dirty Bit " << buffer[start].dirtyBit << " | Pin Count " << buffer[start].pinCount << endl;
+            start = (start + 1) % buffer.size();
+        }
+        std::cout << std::endl;
+    }
+
 };
 
 class BufferManager{
@@ -542,9 +541,6 @@ public:
         ifstream frame(infoFrame);
         frame >> capacity;
         frame.close();
-        //cout<<capacity;
-        //cout<<"Capacidad del Buffer manager: ";cin>>capacity;
-        //int accessPattern[] = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};
         ClockBufferManager clockBufferManager(capacity);
         while(true){
             cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
@@ -569,9 +565,10 @@ public:
                     break;
                 }
             }
-            clockBufferManager.refer(N_bloque);
+            clockBufferManager.readPage(N_bloque);
             clockBufferManager.printBuffer();
         }
+
     }
     void menu_buffer(){
         int opc;
