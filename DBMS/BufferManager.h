@@ -4,176 +4,17 @@
 #include "fstream"
 #include "sstream"
 #include "vector"
+#include "Arbol.h"
 #include "cstring"
 #include <cstdlib>
 #include <unordered_map>
 #include <list>
 #include <algorithm>
-
+#include "ListaEnlazada.h"
 using namespace std;
 namespace fs = filesystem;
 
 //comentario
-
-class Nodo {
-public:
-    char* dato;
-    Nodo* siguiente;
-    string diskName;
-
-    Nodo(const char* dato) {
-        this->dato = new char[strlen(dato) + 1];
-        strcpy(this->dato, dato);
-        this->siguiente = nullptr;
-    }
-
-    ~Nodo() {
-        delete[] dato;
-    }
-};
-
-class ListaEnlazada {
-private:
-    Nodo* cabeza;
-
-public:
-    ListaEnlazada() {
-        cabeza = nullptr;
-    }
-
-    void insertar(const char* dato) {
-        string vaciostr = "vacio";
-        const char* vacio = vaciostr.c_str();
-
-        Nodo* nuevoNodo = new Nodo(dato);
-
-        if (cabeza == nullptr) {
-            cabeza = nuevoNodo;
-        } else {
-            Nodo* temp = cabeza;
-            while (temp->siguiente != nullptr) {
-                if(strcmp(temp->dato,vacio)==0)
-                {
-                    strcpy(temp->dato, dato);
-                    return;
-                }
-                temp = temp->siguiente;
-            }
-            temp->siguiente = nuevoNodo;
-        }
-    }
-//xd
-    void eliminar(const char* data) {
-        cout<<data<<endl;
-        if (cabeza == nullptr) {
-            return;
-        }
-        string vaciostr = "vacio";
-        const char* vacio = vaciostr.c_str();
-        if (strcmp(cabeza->dato, data) == 0) {;
-            cout<<"entro aqui"<<endl;
-            strcpy(cabeza->dato, vacio);
-            return;
-        }
-
-        Nodo* actual = cabeza;
-
-        while (actual != nullptr && strcmp(actual->dato, data) != 0) {
-            //prev = actual;
-            actual = actual->siguiente;
-        }
-
-        if (actual == nullptr) {
-            return;
-        }
-        strcpy(actual->dato, vacio);
-    }
-    void eliminar_nodo(const char* dato){
-        if (cabeza == nullptr) {
-            return;
-        }
-
-        if (strcmp(cabeza->dato, dato) == 0) {
-            Nodo* temp = cabeza;
-            cabeza = cabeza->siguiente;
-            delete temp;
-            return;
-        }
-
-        Nodo* prev = nullptr;
-        Nodo* actual = cabeza;
-
-        while (actual != nullptr && strcmp(actual->dato, dato) != 0) {
-            prev = actual;
-            actual = actual->siguiente;
-        }
-
-        if (actual == nullptr) {
-            return;
-        }
-
-        prev->siguiente = actual->siguiente;
-        delete actual;
-    }
-
-
-    void moverregistro(int pos_i, int pos_f){
-        Nodo *tmp = cabeza;
-        int contar = 1;
-        while(true){
-            if(contar==pos_i){
-                break;
-            }
-            contar++;
-            tmp = tmp->siguiente;
-        }
-
-        Nodo* temp = cabeza;
-        int contador = 1;
-        eliminar_nodo(tmp->dato);
-        while(temp != nullptr){
-            if(contador == pos_f){
-                strcpy(temp->dato,tmp->dato);
-                break;
-            }
-            contador++;
-            temp = temp->siguiente;
-        }
-        if(temp==nullptr){
-            insertar(tmp->dato);
-        }
-    }
-    void mostrar() {
-        Nodo* temp = cabeza;
-        while (temp != nullptr) {
-            std::cout << temp->dato << endl;
-            temp = temp->siguiente;
-        }
-        std::cout << std::endl;
-    }
-
-    bool find(int lim){
-        Nodo *temp = cabeza;
-        int cont =1;
-        while(temp != nullptr){
-            if(cont==lim){
-                return true;
-            }
-            cont++;
-        }
-        return false;
-    }
-    void guardar_archivo(string aux){
-        ofstream archivo(aux,ios::out);
-        Nodo* temp = cabeza;
-        while (temp != nullptr) {
-            archivo<<temp->dato<<endl;
-            temp = temp->siguiente;
-        }
-        archivo.close();
-    }
-};
-
 
 
 class LRUBufferManager {
@@ -325,6 +166,11 @@ public:
 
 };
 
+struct flag{
+    int id;
+    int dirty_bit;
+    int pin_count;
+};
 class BufferManager{
 private:
     int numFrames;
@@ -531,6 +377,66 @@ public:
         }
     }
 
+    void llenarArbol(string diskname,  Arbol &arbol) {
+        int capacidadSector,numSectores, numPistas, numSuperficies, numPlatos, numBloque=0,s=0, limBloque=0, claveEntero=0;
+        string direccionDiskname = diskname + "/" + diskname + ".txt";
+        ifstream infoDiskname(direccionDiskname);
+        infoDiskname >> capacidadSector >> numSectores >> numPistas >> numSuperficies >> numPlatos;
+        infoDiskname.close();
+        string infoBloque = diskname + "/infoBloque.txt";
+        ifstream infoB(infoBloque);
+        infoB >> limBloque;
+        infoB.close();
+        for (int plato = 0; plato < numPlatos; ++plato) {
+            string carpetaPlato = diskname + "/Plato " + to_string(plato + 1);
+
+            for (int superficie = 0; superficie < numSuperficies; ++superficie) {
+                string carpetaSuperficie = carpetaPlato + "/Superficie " + to_string(superficie + 1);
+
+                for (int pista = 0; pista < numPistas; ++pista) {
+                    string carpetaPista = carpetaSuperficie + "/Pista " + to_string(pista + 1);
+                    for (int sector = 0; sector < numSectores; ++sector) {
+                        string position;
+                        position += (plato < 9 ? "0" : "") + to_string(plato + 1);
+                        position += (superficie < 9 ? "0" : "") + to_string(superficie + 1);
+                        position += (pista < 9 ? "0" : "") + to_string(pista + 1);
+                        position += (sector < 9 ? "0" : "") + to_string(sector + 1);
+                        string archivoSector = carpetaPista + "/Sector " + position + ".txt";
+
+                        ifstream file(archivoSector);
+                        s++;
+
+                        if (s==limBloque){
+                            numBloque++;
+                            s = 0;
+                        }
+                        //cout << s << "--"<< numBloque<< "lim:"<<limBloque;
+                        if (file.is_open()) {
+                            string linea;
+                            while (getline(file, linea)) {
+                                istringstream ss(linea);
+                                string clave;
+                                getline(ss, clave, ','); // La clave es el primer atributo
+                                //el numero de bloque donde pertence esta con el nombre de numBloque
+                                claveEntero++;
+
+                                if (arbol.agregar(claveEntero,archivoSector,numBloque)) {
+                                    printf("        Se ha agregado el elemento!\n");
+                                    //arbol->imprimirArbol();
+                                } else
+                                    printf("\n        Elemento repetido, no se ha agregado el elemento!\n");
+                                printf("        ------------------------------------------\n");
+                            }
+                            file.close();
+                        }
+                        else {
+                            cout << "Error al abrir el archivo: " << archivoSector << endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
     void Algoritmo_CLOCK(){
         int capacity,N_bloque, n;
         string fileNumBloques = diskname + "/infoBloque.txt";
@@ -538,12 +444,24 @@ public:
         sectors >> n;
         sectors.close();
         string infoFrame = diskname + "/BufferPool/info.txt";
+        /*
+
+         */
         ifstream frame(infoFrame);
         frame >> capacity;
         frame.close();
+        int num_keys;
+        cout<<"Numero de keys: ";cin>>num_keys;
+        Arbol a(3);
+        llenarArbol(diskname,a);
         ClockBufferManager clockBufferManager(capacity);
+        int iD;
         while(true){
-            cout<<"Numero de bloque a ingresar en el buffer manager: ";cin>>N_bloque;
+            cout<<"id a buscar: ";cin>>iD;
+            int bloquebus = a.buscar(iD).donde->datos[a.buscar(iD).indice]->NumBloque;
+            cout<<bloquebus<<endl;
+            clockBufferManager.readPage(bloquebus);
+            clockBufferManager.printBuffer();
             if(N_bloque<1){
                 cout<<"buffer pool bloques: "<<endl;
                 clockBufferManager.printBuffer();
@@ -565,8 +483,6 @@ public:
                     break;
                 }
             }
-            clockBufferManager.readPage(N_bloque);
-            clockBufferManager.printBuffer();
         }
 
     }

@@ -12,20 +12,26 @@ struct nodo {
 
 map<string, nodo> BPlusTree;
 
+void imprimirRaiz(){
+    cout<<BPlusTree.find("1")->second.clave<<endl;
+}
 void searchBPlusTree(const string& clave) {
     auto it = BPlusTree.find(clave);
-    if (it != BPlusTree.end()) {
+        if (it != BPlusTree.end()) {
         string archivo = it->second.nombreArchivo;
         ifstream file(archivo);
         if (file.is_open()) {
             string linea;
+
             while (getline(file, linea)) {
                 istringstream ss(linea);
                 string atributo;
-                while (getline(ss, atributo, ',')) {
-                    cout << atributo << " ";
+                getline(ss,atributo,',');
+                if(atributo == clave){
+                    cout<<atributo<<" ";
+                    cout << " (En archivo: " << archivo << ")" << endl;
                 }
-                cout << " (En archivo: " << archivo << ")" << endl;
+
             }
             file.close();
         }
@@ -39,7 +45,11 @@ void searchBPlusTree(const string& clave) {
 }
 
 void createFolder(string diskname, int capacidadSector, int numSectores, int numPistas, int numSuperficies, int numPlatos) {
-
+    int numBloque=0,s=0, limBloque=0;
+    string infoBloque = diskname + "/DirectorioDeBloques.txt";
+    ifstream infoB(infoBloque);
+    infoB >> limBloque;
+    infoB.close();
     for (int plato = 0; plato < numPlatos; ++plato) {
         string carpetaPlato = diskname + "/Plato " + to_string(plato + 1);
 
@@ -48,7 +58,6 @@ void createFolder(string diskname, int capacidadSector, int numSectores, int num
 
             for (int pista = 0; pista < numPistas; ++pista) {
                 string carpetaPista = carpetaSuperficie + "/Pista " + to_string(pista + 1);
-
                 for (int sector = 0; sector < numSectores; ++sector) {
                     string position;
                     position += (plato < 9 ? "0" : "") + to_string(plato + 1);
@@ -58,6 +67,12 @@ void createFolder(string diskname, int capacidadSector, int numSectores, int num
                     string archivoSector = carpetaPista + "/Sector " + position + ".txt";
 
                     ifstream file(archivoSector);
+                    s++;
+
+                    if (s==limBloque){
+                        numBloque++;
+                        s = 0;
+                    }
                     if (file.is_open()) {
                         string linea;
                         while (getline(file, linea)) {
@@ -80,12 +95,13 @@ void createFolder(string diskname, int capacidadSector, int numSectores, int num
 
 
 int main() {
-    string diskname = "aldechi";
-    int capacidadSector = 600;
+    string diskname = "parcial2";
+
+    int capacidadSector = 1351;
     int numSectores = 15;
-    int numPistas = 10;
+    int numPistas = 7;
     int numSuperficies = 2;
-    int numPlatos = 3;
+    int numPlatos = 5;
 
     createFolder(diskname, capacidadSector, numSectores, numPistas, numSuperficies, numPlatos);
 
@@ -94,6 +110,7 @@ int main() {
     do {
         cout << "====== MENÚ ======" << endl;
         cout << "1. Buscar registro por clave" << endl;
+        cout << "2. Imprimir Raiz."<<endl;
         cout << "0. Salir" << endl;
         cout << "===================" << endl;
         cout << "Ingrese opción: ";
@@ -104,6 +121,9 @@ int main() {
                 cout << "Ingrese la clave del registro a buscar: ";
                 cin >> clave;
                 searchBPlusTree(clave);
+                break;
+            case 2:
+                imprimirRaiz();
                 break;
             case 0:
                 cout << "Saliendo del programa." << endl;

@@ -688,7 +688,7 @@ public:
                 const char* textoChar = aux.c_str();
                 lista.insertar(textoChar);
             }else if(opc==2){
-                eliminar_re(lis ta,sector_);
+                eliminar_re(lista,sector_);
             }else if(opc==3){
                 mover_registro(lista);
             }else if(opc==4){
